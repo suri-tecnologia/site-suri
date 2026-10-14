@@ -15,7 +15,8 @@
 Levantados antes de escrever este plano, com leitura direta no servidor, no OPNsense e no DNS:
 
 1. **O DNS de `suritecnologia.com` está na Cloudflare** (nameservers `clint`/`connie.ns.cloudflare.com`, registros com proxy). O domínio raiz mostra hoje a página de "domínio estacionado" da Hostinger. Os subdomínios (`chatwoot`, `n8n`, `portainer`) passam por Cloudflare → OPNsense. **Consequência:** a cadeia real é Cloudflare → OPNsense → Caddy. A pendência "o que o domínio raiz resolve" (spec §8) está resolvida: é preciso trocar o registro raiz na Cloudflare (Task 11).
-2. **O Portainer está exposto na internet** em `portainer.suritecnologia.com` (vhost no nginx do OPNsense → 192.168.2.50:9000). A spec (§5.4) supunha o contrário. **Este plano não altera isso.** É uma decisão do usuário, levada na entrega do plano.
+2. **O Portainer estava exposto na internet** em `portainer.suritecnologia.com` (vhost no nginx do OPNsense → 192.168.2.50:9000). A spec (§5.4) supunha o contrário. **Decisão do usuário em 14/10/2026:** retirar o acesso público e manter só o acesso interno. No mesmo dia, o **n8n**, sem uso, foi parado (`docker stop` + `restart=no`, dados preservados em `/root/n8n/` e backup de 07/10 em `~/n8n_backup_20261007/`). A retirada dos vhosts e dos registros DNS dos dois é a Task 0.
+7. **A WAN do OPNsense aceita 80 e 443 de qualquer origem** (`pass in quick on re0 ... from any to (self) port = https`). Quem souber o IP do cartório chega aos serviços sem passar pela Cloudflare. A correção (aceitar só as faixas da Cloudflare) entra na Task 11. Há também uma liberação de `8080` (http-alt) de qualquer origem na WAN, fora do escopo deste plano e registrada para investigação.
 3. **O OPNsense emite os certificados pelo ACME Client (Let's Encrypt)**, um por host, com vencimento em 25/11/2026. Os vhosts são criados no plugin nginx pela interface web.
 4. **Na conta Free do GitHub, repositórios privados não têm proteção de branch.** Desvio da spec (§3.1, §5.4): `site-suri` passa a ser **público**. O site é público por natureza, não há segredo no repositório, e o histórico das políticas fica auditável por qualquer pessoa. A imagem dele no GHCR também é pública. `suri-infra` continua **privado e sem proteção de branch**; o risco fica registrado no README dele.
 5. **Não há Docker neste PC.** Tudo que precisa de Docker roda no GitHub Actions. Isso atende o critério de aceite 5 (ensaio de portabilidade): cada execução do CI sobe a stack do zero num runner limpo, só a partir do git, com os mesmos comandos do runbook.
@@ -39,6 +40,8 @@ Levantados antes de escrever este plano, com leitura direta no servidor, no OPNs
 - Nenhum segredo em git. Tokens só no Portainer e nos Secrets do GitHub.
 - Arquivos `.sh` com fim de linha LF (`.gitattributes`) e bit de execução no git.
 - Mudanças no servidor 192.168.2.50, no OPNsense e na Cloudflare só com confirmação explícita do usuário no chat, no momento de executar. O acesso SSH do Claude ao servidor e ao OPNsense é só para leitura e verificação.
+- **Deploy manual enquanto estivermos no servidor do cartório** (decisão de 14/10/2026): as stacks do Portainer ficam **sem** atualização automática (GitOps polling desligado). Um push no GitHub, sozinho, nunca chega ao servidor; cada deploy é um clique em *Pull and redeploy*. Na VPS da SURI, o polling pode ser religado.
+- **O Portainer só é acessado pela rede interna** (`https://192.168.2.50:9443`). O acesso público foi retirado em 14/10/2026.
 
 ## Review Focus
 
@@ -87,6 +90,32 @@ Levantados antes de escrever este plano, com leitura direta no servidor, no OPNs
 | `tests/smoke.sh`, `tests/backup.sh`, `tests/compose.proxy.ci.yaml`, `tests/compose.sites.ci.yaml` | testes no CI |
 | `docs/subir-do-zero.md`, `docs/migrar-para-vps.md`, `docs/rollback.md`, `docs/aceite.md` | runbooks e registro do aceite |
 | `README.md`, `.gitattributes`, `.github/workflows/ci.yml`, `.github/dependabot.yml` | repositório e CI |
+
+---
+
+### Task 0: Retirar o acesso público de n8n e Portainer
+
+Mudanças no OPNsense e na Cloudflare: **o usuário executa**, e o Claude verifica. Pode rodar em paralelo às Tasks 1 a 8.
+
+- [ ] **Step 1: OPNsense (usuário)**
+
+Em *Services → Nginx → Configuration → HTTP(S) → HTTP Server*, **desativar** (não apagar, para poder voltar) os servidores `n8n.suritecnologia.com` e `portainer.suritecnologia.com`. Depois, *Apply*. Em *Services → ACME Client → Certificates*, desativar a renovação dos dois certificados.
+
+- [ ] **Step 2: Cloudflare (usuário)**
+
+Em *DNS*, apagar os registros `n8n` e `portainer`.
+
+- [ ] **Step 3: Verificar (Claude)**
+
+```bash
+for h in n8n portainer; do curl -s -o /dev/null -m 15 -w "$h: %{http_code}\n" "https://$h.suritecnologia.com/"; done
+curl -sk -o /dev/null -m 10 -w 'Portainer interno: %{http_code}\n' https://192.168.2.50:9443/
+```
+Expected: `n8n: 000` e `portainer: 000` (nome não resolve mais); `Portainer interno: 200`.
+
+- [ ] **Step 4: Apagar o n8n de vez (a partir de 13/11/2026, se nada fez falta)**
+
+Confirmar com o usuário. Então, no servidor: remover os containers `n8n-n8n-1` e `n8n-postgres-1` e as imagens, e apagar `/root/n8n/` só depois de copiar `~/n8n_backup_20261007/` para fora do servidor. Com isso, a pendência das senhas vazadas do n8n deixa de existir.
 
 ---
 
@@ -2231,7 +2260,8 @@ estes mesmos passos a cada push, num runner limpo.
    - Reference: `refs/heads/main`
    - Compose path: `proxy/compose.yaml`
    - Authentication: ligado, com token fine-grained só de leitura (Contents: Read) no repositório `suri-infra`
-   - GitOps updates: ligado, *Polling*, intervalo `5m`
+   - GitOps updates: **desligado no servidor do cartório**. Cada deploy é manual (*Pull and redeploy*), para
+     que um push no GitHub, sozinho, nunca chegue ao servidor. Na VPS da SURI, pode ser ligado (*Polling*, `5m`).
    - Environment variables: `SURI_BIND` e `SURI_PROXY_CONFIAVEL` (tabela acima)
 3. **Stack `suri-sites`:** igual, com Compose path `stacks/sites/compose.yaml` e sem variáveis.
 
@@ -2283,7 +2313,8 @@ Pré-requisito: VPS com Docker Engine 24+, plugin compose e Portainer CE.
 As versões em produção são as tags em `proxy/compose.yaml` e `stacks/sites/compose.yaml`.
 
 1. `git revert <commit que trocou a tag>` e `git push`.
-2. O Portainer aplica sozinho em até 5 minutos (polling). Para aplicar na hora: *Stacks → <stack> → Pull and redeploy*.
+2. No Portainer (rede interna, `https://192.168.2.50:9443`): *Stacks → <stack> → Pull and redeploy*.
+   No servidor do cartório, o deploy é sempre manual. Sem esse clique, nada muda no ar.
 3. Conferir a versão no ar: `curl -s https://suritecnologia.com/ | grep -o 'data-versao="[^"]*"'`.
 ```
 
@@ -2417,7 +2448,27 @@ Em *Services → Nginx → Configuration*, copiando as opções do vhost do `cha
 4. *HTTP(S) → HTTP Server*: listen 443 com HTTPS, server names `suritecnologia.com` e `www.suritecnologia.com`, certificado do Step 2, location do item 3, redirecionamento de HTTP para HTTPS.
 5. *Apply*.
 
-- [ ] **Step 4: Verificar de fora (Claude)**
+- [ ] **Step 4: Origem só pela Cloudflare (usuário, com orientação do Claude)**
+
+Hoje a WAN aceita 80/443 de qualquer origem (achado 7). Antes de mexer, o Claude confere por leitura que todos os vhosts do nginx do OPNsense (`server_name`) estão com proxy da Cloudflare. Se algum host for acessado direto pelo IP, ele fica de fora desta restrição ou ganha proxy primeiro.
+1. *Firewall → Aliases → +*: nome `cloudflare_ips`, tipo **URL Table (IPs)**, URL `https://www.cloudflare.com/ips-v4`, atualização diária. Crie um segundo alias com `https://www.cloudflare.com/ips-v6` se a WAN tiver IPv6.
+2. *Firewall → Rules → WAN*: nas regras que liberam `http` e `https` para *This Firewall*, troque a origem `any` por `cloudflare_ips`. Desmarque *Log* se as regras ficarem barulhentas.
+3. Na Cloudflare: *SSL/TLS → Overview* → modo **Full (strict)**.
+4. *Apply*. Verificação (Claude): `https://chatwoot.suritecnologia.com` e `https://suritecnologia.com` continuam com 200. Depois, `pfctl -sr | grep 'port = https'` no OPNsense (leitura) mostra `from <cloudflare_ips>`.
+5. A renovação dos certificados (ACME) precisa continuar funcionando. Se o método de validação for HTTP-01, ele passa pela Cloudflare (registros com proxy) e não é afetado. Na próxima renovação (antes de 25/11/2026), confira o status verde em *Services → ACME Client*.
+
+- [ ] **Step 5: Guarda dos registros de acesso por 6 meses (Claude verifica; usuário ajusta se preciso)**
+
+As políticas afirmam guardar os registros de acesso por **6 meses**. O Caddy não grava log; quem grava é o nginx do OPNsense. Verificação por leitura:
+```bash
+ssh -i ~/.ssh/opnsense_risma_diag -o IdentitiesOnly=yes -o BatchMode=yes root@192.168.2.1 'sh -s' <<'EOF' 2>/dev/null | tail -15
+ls -la /var/log/nginx/ | head -20
+grep -rE 'nginx' /usr/local/etc/newsyslog.conf.d/ /etc/newsyslog.conf 2>/dev/null
+EOF
+```
+Se a retenção for menor que 6 meses, o usuário ajusta em *System → Settings → Logging* (dias de retenção ≥ 183) e confere o espaço em disco. O texto das políticas só fica como está se a retenção real for de pelo menos 6 meses. Caso contrário, ajuste o texto antes da versão 1.0.0.
+
+- [ ] **Step 6: Verificar de fora (Claude)**
 
 ```bash
 curl -sI https://suritecnologia.com/ | tr -d '\r' | grep -iE '^(http/|content-security|strict-transport|x-frame|server)'
@@ -2458,10 +2509,10 @@ Expected: Acessibilidade ≥ 90 e Boas práticas ≥ 90 nas duas. Corrija o que 
 - [ ] **Step 4: Rollback de verdade (critério 6)**
 
 1. No `site-suri`: `npm version patch -m "chore: %s para teste de rollback"` (gera o commit e a tag `v1.0.1`), depois `git push origin main --follow-tags` e espere o CI.
-2. No `suri-infra`: troque `site-suri:1.0.0` por `site-suri:1.0.1` em `stacks/sites/compose.yaml`, depois `git commit -am "deploy: site 1.0.1"` e `git push`.
-3. Em até 5 minutos: `curl -s https://suritecnologia.com/ | grep -o 'data-versao="[^"]*"'` → `1.0.1`.
-4. Rollback conforme `docs/rollback.md`: `git revert --no-edit HEAD` e `git push`. Em até 5 minutos, a mesma checagem → `1.0.0`.
-5. Avance de novo para `1.0.1` (`git revert --no-edit HEAD` e `git push`) e confira.
+2. No `suri-infra`: troque `site-suri:1.0.0` por `site-suri:1.0.1` em `stacks/sites/compose.yaml`, depois `git commit -am "deploy: site 1.0.1"` e `git push`. Espere 10 minutos **sem** clicar em nada e rode `curl -s https://suritecnologia.com/ | grep -o 'data-versao="[^"]*"'` → deve continuar `1.0.0`. Isso prova que o push sozinho não chega ao servidor.
+3. Usuário: *Pull and redeploy* na stack `suri-sites`. A mesma checagem → `1.0.1`.
+4. Rollback conforme `docs/rollback.md`: `git revert --no-edit HEAD`, `git push` e *Pull and redeploy*. A mesma checagem → `1.0.0`.
+5. Avance de novo para `1.0.1` (`git revert --no-edit HEAD`, `git push` e *Pull and redeploy*) e confira.
 
 - [ ] **Step 5: Monitoramento (usuário)**
 
@@ -2475,7 +2526,7 @@ Crie `docs/aceite.md` com esta tabela e preencha as colunas "Resultado" e "Evid�
 
 | # | Critério (spec §6) | Resultado | Evidência |
 |---|---|---|---|
-| 1 | 7 páginas com HTTPS, sem links quebrados | | `tests/transversal.test.ts` + Task 11 Step 4 |
+| 1 | 7 páginas com HTTPS, sem links quebrados | | `tests/transversal.test.ts` + Task 11 Step 6 |
 | 2 | Nota A em cabeçalhos | | securityheaders e Observatory |
 | 3 | Lighthouse ≥ 90 (acessibilidade, boas práticas) | | home e política do app |
 | 4 | Trivy sem CVE alta/crítica | | run do CI da v1.0.1 |
@@ -2492,5 +2543,8 @@ git add docs/aceite.md && git commit -m "docs: registro do aceite" && git push
 ## Depois deste plano (fora do escopo, registrado para não se perder)
 
 - **Revisão jurídica das políticas:** depois dela, publicar a versão revisada com `revisao_juridica: true` (arquivo novo `app-v1-1.md` / `suri-v1-1.md` se o texto mudar; se não mudar, só a flag na 1.0) e só então cadastrar a URL nas lojas. Até lá, as páginas mostram o aviso de minuta e ficam fora dos buscadores.
-- **Portainer exposto na internet** (achado 2): decisão do usuário, a tratar à parte.
+- **Liberação de `8080` na WAN do OPNsense** (achado 7): identificar o que responde nela e fechar, se não for usada.
+- **Porta 9000 (HTTP sem TLS) do Portainer na rede local:** recriar o container publicando só a 9443, numa janela depois das 17h.
+- **DMZ para o servidor 192.168.2.50:** separar o servidor da LAN do cartório antes do backend do app.
+- **Pendências antigas no mesmo servidor:** trocar a senha do Postgres do n8n (deixa de valer quando o n8n for apagado, Task 0 Step 4) e a senha de root do OPNsense; tirar o chatwoot da tag `latest`.
 - **Projeto do app:** contas das lojas e D-U-N-S em nome da SURI, e o risco da regra 4.2.6 (spec §9).
