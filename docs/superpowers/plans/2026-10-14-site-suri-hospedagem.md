@@ -2437,7 +2437,10 @@ Os itens 2 a 4 evitam scripts injetados pela Cloudflare (Review Focus 3).
 
 - [ ] **Step 2: Certificado no OPNsense (usuário)**
 
-*Services → ACME Client → Certificates → +*: Common Name `suritecnologia.com`, Alt Names `www.suritecnologia.com`, mesma conta e mesmo método de validação dos certificados de `chatwoot`/`n8n`/`portainer`. Emitir (*Issue/Renew*) e conferir o status verde.
+O OPNsense usa um certificado **curinga** `*.suritecnologia.com` (validação por DNS; o vigente foi emitido em 27/08/2026 e vence em 25/11/2026). O curinga cobre `www`, mas **não** o domínio raiz.
+*Services → ACME Client → Certificates*: edite o certificado `*.suritecnologia.com` vigente e acrescente `suritecnologia.com` em *Alt Names*. Salve, clique em *Issue/Renew* e confira o status verde. O mesmo certificado passa a servir chatwoot, raiz e `www`.
+Verificação (Claude, leitura): `openssl x509 -in /usr/local/etc/nginx/key/<arquivo do vhost>.pem -noout -ext subjectAltName` lista `*.suritecnologia.com` e `suritecnologia.com`.
+Limpeza opcional: apagar a entrada antiga de 27/02/2026, que já venceu.
 
 - [ ] **Step 3: Vhost no nginx do OPNsense (usuário)**
 
@@ -2455,7 +2458,8 @@ Hoje a WAN aceita 80/443 de qualquer origem (achado 7). Antes de mexer, o Claude
 2. *Firewall → Rules → WAN*: nas regras que liberam `http` e `https` para *This Firewall*, troque a origem `any` por `cloudflare_ips`. Desmarque *Log* se as regras ficarem barulhentas.
 3. Na Cloudflare: *SSL/TLS → Overview* → modo **Full (strict)**.
 4. *Apply*. Verificação (Claude): `https://chatwoot.suritecnologia.com` e `https://suritecnologia.com` continuam com 200. Depois, `pfctl -sr | grep 'port = https'` no OPNsense (leitura) mostra `from <cloudflare_ips>`.
-5. A renovação dos certificados (ACME) precisa continuar funcionando. Se o método de validação for HTTP-01, ele passa pela Cloudflare (registros com proxy) e não é afetado. Na próxima renovação (antes de 25/11/2026), confira o status verde em *Services → ACME Client*.
+5. A renovação do certificado não é afetada: o curinga é validado por DNS, sem conexão de entrada na WAN.
+6. Nomes desconhecidos: hoje, um pedido com qualquer nome cai no vhost do chatwoot (servidor padrão). Crie um *HTTP Server* padrão (*Default server* marcado) que só responda 444/fechar conexão, para o nginx recusar nomes que não conhece. Verificação (Claude): `curl -sk --resolve x.suritecnologia.com:443:127.0.0.1 https://x.suritecnologia.com/` no OPNsense não devolve o chatwoot.
 
 - [ ] **Step 5: Guarda dos registros de acesso por 6 meses (Claude verifica; usuário ajusta se preciso)**
 
