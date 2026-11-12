@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "node-html-parser": "9.0.4",
-    "vitest": "5.0.4"
+    "vitest": "5.1.0"
   }
 }
