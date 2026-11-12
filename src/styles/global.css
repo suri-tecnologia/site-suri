@@ -1,0 +1,50 @@
+/* Tokens: paleta A da identidade SURI v1.0.0 (identidade visual SURI/colors/palette-a.css) */
+:root {
+  --color-primary: #0B2A5B;
+  --color-secondary: #1F5FA8;
+  --color-accent: #17A8C1;
+  --color-neutral-100: #F1F4F8;
+  --color-neutral-300: #CAD3DF;
+  --color-neutral-500: #667385;
+  --color-neutral-700: #344055;
+  --color-neutral-900: #0F1826;
+  --color-bg: #FFFFFF;
+  --color-fg: #0F1826;
+  --font-titulo: 'Sora', system-ui, sans-serif;
+  --font-texto: 'IBM Plex Sans', system-ui, sans-serif;
+  --largura: 72rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-texto);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-fg);
+  background: var(--color-bg);
+}
+
+h1, h2, h3, h4 { font-family: var(--font-titulo); color: var(--color-primary); }
+h1 { font-size: 2.44rem; line-height: 1.15; font-weight: 700; letter-spacing: -0.015em; }
+h2 { font-size: 1.95rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; margin-top: 2.5rem; }
+h3 { font-size: 1.56rem; line-height: 1.3; font-weight: 600; }
+
+a { color: var(--color-secondary); }
+a:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+.pular { position: absolute; left: -999px; }
+.pular:focus { left: 1rem; top: 1rem; background: var(--color-bg); padding: 0.5rem 1rem; }
+
+.topo, .rodape, main { max-width: var(--largura); margin: 0 auto; padding: 1.5rem; }
+.topo { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.topo nav, .rodape nav { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+.marca { color: var(--color-primary); display: inline-block; width: 10rem; }
+.marca svg { width: 100%; height: auto; display: block; }
+.rodape { border-top: 1px solid var(--color-neutral-300); color: var(--color-neutral-700); font-size: 0.875rem; }
+
+.aviso { border-left: 4px solid var(--color-accent); background: var(--color-neutral-100); padding: 0.75rem 1rem; }
+.meta-politica { color: var(--color-neutral-700); font-size: 0.875rem; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid var(--color-neutral-300); padding: 0.5rem; text-align: left; vertical-align: top; }

@@ -1,0 +1,7 @@
+{
+  "nome": "SURI Tecnologia",
+  "url": "https://suritecnologia.com",
+  "contato": { "email": null, "whatsapp": null },
+  "encarregado": null,
+  "app": { "slug": "acompanhe", "nome": "Acompanhe", "nomeDefinitivo": false }
+}

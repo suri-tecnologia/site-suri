@@ -1,0 +1,23 @@
+<!--
+  SURI Tecnologia — FAVICON (32 x 32)
+
+  Uso: <link rel="icon" href="/favicon.svg" type="image/svg+xml"> (Chrome, Edge, Firefox).
+  Um UNICO <path> (6 subcaminhos, todos preenchidos; sem stroke, sem transform, sem máscara).
+  Fundo transparente. Cor: primária #0B2A5B; no modo escuro do navegador vira branco (bloco <style>),
+  pois o azul escuro some em abas escuras (contraste 1,3:1 sobre #0F1826).
+
+  Simplificações em relação a versions/icon-only.svg, para ler a 16 px:
+    - olho com raio de 1,5 unidades (a 16 px é um ponto de ~1,5 px; no original seria 1,1 unidade)
+    - orelha 30% maior
+    - margem de 1,5 unidades por lado; o S ocupa 29 de 32 de altura (escala 0.1533)
+  Nada mais foi alterado: a espessura do traço já cai em ~2,2 px a 16 px.
+
+  Para Safari e para a tela inicial do iOS, gere PNGs a partir de app-icon.svg
+  (apple-touch-icon 180 x 180; favicon.ico com 16/32/48 se precisar de compatibilidade antiga):
+  o Safari nem sempre usa favicon SVG.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t">
+  <title id="t">SURI Tecnologia</title>
+  <style>path{fill:#0B2A5B}@media (prefers-color-scheme:dark){path{fill:#FFFFFF}}</style>
+  <path d="M16 18.85A7.97 7.97 0 1 1 17.38 3.03L16.64 7.26A3.68 3.68 0 1 0 16 14.56ZM16 14.56A7.97 7.97 0 1 1 14.62 30.38L15.36 26.15A3.68 3.68 0 1 0 16 18.85ZM16 2.91A7.97 7.97 0 0 1 23.69 8.81C22.44 7.82 19.37 7.2 16 7.2ZM16 30.5A7.97 7.97 0 0 1 8.29 24.51C9.56 25.9 12.93 26.21 16 26.21ZM10.24 4.9A1.79 2.79 -25 1 1 13.49 3.38A1.79 2.79 -25 1 1 10.24 4.9ZM16.03 11.19A1.5 1.5 0 1 1 19.03 11.19A1.5 1.5 0 1 1 16.03 11.19Z"/>
+</svg>

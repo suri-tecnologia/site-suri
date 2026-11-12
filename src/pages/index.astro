@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import { APP, SITE } from '../site.config';
+---
+<Base titulo={SITE.nome} descricao="A SURI Tecnologia desenvolve soluções digitais para cartórios: apps, automação e infraestrutura segura, com proteção de dados desde o projeto.">
+  <h1>Tecnologia para cartórios, com segurança e respeito aos dados</h1>
+  <p>
+    A SURI Tecnologia desenvolve soluções digitais para serventias extrajudiciais:
+    aplicativos para o cidadão acompanhar seus pedidos, automação do atendimento
+    e infraestrutura segura. Cada solução nasce com a LGPD no projeto, não como remendo.
+  </p>
+  <h2>App {APP.nome}</h2>
+  <p>
+    O cliente do cartório acompanha a situação do seu pedido de registro ou de certidão
+    e recebe um aviso a cada nova etapa, sem cadastro e sem informar dados pessoais.
+  </p>
+  <p><a href={`/apps/${APP.slug}/`}>Conheça o app {APP.nome}</a></p>
+</Base>

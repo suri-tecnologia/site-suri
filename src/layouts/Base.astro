@@ -1,0 +1,52 @@
+---
+import '@fontsource/sora/latin-400.css';
+import '@fontsource/sora/latin-600.css';
+import '@fontsource/sora/latin-700.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-400-italic.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '../styles/global.css';
+import logo from '../assets/logo-horizontal.svg?raw';
+import pacote from '../../package.json';
+import { APP, SITE } from '../site.config';
+
+interface Props {
+  titulo: string;
+  descricao: string;
+  indexar?: boolean;
+}
+
+const { titulo, descricao, indexar = true } = Astro.props;
+const tituloCompleto = titulo === SITE.nome ? titulo : `${titulo} | ${SITE.nome}`;
+---
+<!doctype html>
+<html lang="pt-BR" data-versao={pacote.version}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{tituloCompleto}</title>
+    <meta name="description" content={descricao} />
+    {!indexar && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+    <header class="topo">
+      <a class="marca" href="/" aria-label="SURI Tecnologia — início"><Fragment set:html={logo} /></a>
+      <nav aria-label="Principal">
+        <a href={`/apps/${APP.slug}/`}>App {APP.nome}</a>
+        <a href="/lgpd/">LGPD</a>
+      </nav>
+    </header>
+    <main id="conteudo">
+      <slot />
+    </main>
+    <footer class="rodape">
+      <p>© {new Date().getUTCFullYear()} {SITE.nome}</p>
+      <nav aria-label="Rodapé">
+        <a href="/privacidade/">Política de privacidade</a>
+        <a href="/lgpd/">Seus direitos (LGPD)</a>
+      </nav>
+    </footer>
+  </body>
+</html>
