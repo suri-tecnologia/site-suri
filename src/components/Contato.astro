@@ -1,0 +1,9 @@
+---
+import { SITE } from '../site.config';
+const { email, whatsapp } = SITE.contato;
+---
+<ul data-contato>
+  {email && <li>E-mail: <a href={`mailto:${email}`}>{email}</a></li>}
+  {whatsapp && <li>WhatsApp: <a href={`https://wa.me/${whatsapp}`}>+{whatsapp}</a></li>}
+  {!email && !whatsapp && <li>Canal de contato em definição.</li>}
+</ul>

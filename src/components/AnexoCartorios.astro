@@ -1,0 +1,25 @@
+---
+import { getCollection, render } from 'astro:content';
+import { formatarData } from '../lib/versao';
+
+const cartorios = (await getCollection('cartorios')).sort((a, b) => a.data.nome.localeCompare(b.data.nome, 'pt-BR'));
+if (cartorios.length === 0) throw new Error('o anexo precisa de pelo menos um cartório em src/content/cartorios');
+const itens = await Promise.all(cartorios.map(async (c) => ({ c, Content: (await render(c)).Content })));
+---
+<section class="anexo" aria-labelledby="anexo-titulo">
+  <h2 id="anexo-titulo">Anexo — Cartórios atendidos</h2>
+  <p>
+    Para os dados do registro (situação, histórico, exigência e certidão de cada pedido), o controlador
+    é o cartório responsável pelo pedido. A SURI apenas consulta esses dados em nome dele.
+  </p>
+  {itens.map(({ c, Content }) => (
+    <article class="cartorio">
+      <h3>{c.data.nome}</h3>
+      <p>
+        {c.data.cidade}/{c.data.uf} · <a href={c.data.site}>{c.data.site}</a> ·
+        atendido pelo app desde {formatarData(c.data.atendido_desde)}
+      </p>
+      <Content />
+    </article>
+  ))}
+</section>

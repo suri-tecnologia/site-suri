@@ -1,0 +1,30 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import Politica from '../../../../components/Politica.astro';
+import AnexoCartorios from '../../../../components/AnexoCartorios.astro';
+import { APP } from '../../../../site.config';
+import { versoes, type Politica as Entrada } from '../../../../lib/politicas';
+import { escolherVigente } from '../../../../lib/versao';
+
+export async function getStaticPaths() {
+  const lista = await versoes('app');
+  return lista.map((entrada) => ({
+    params: { app: APP.slug, versao: `v${entrada.data.versao}` },
+    props: { entrada },
+  }));
+}
+
+const { entrada } = Astro.props as { entrada: Entrada };
+const lista = await versoes('app');
+const vigente = escolherVigente(lista, new Date());
+---
+<Base
+  titulo={`Política de privacidade do app ${APP.nome} — versão ${entrada.data.versao}`}
+  descricao={`Versão ${entrada.data.versao} da política de privacidade do app ${APP.nome}.`}
+  indexar={false}
+>
+  <h1>Política de privacidade do app {APP.nome} — versão {entrada.data.versao}</h1>
+  <Politica entrada={entrada} vigente={entrada.id === vigente.id} historico={lista} base={`/apps/${APP.slug}/privacidade/`}>
+    <AnexoCartorios />
+  </Politica>
+</Base>

@@ -1,0 +1,12 @@
+---
+import { SITE } from '../site.config';
+const e = SITE.encarregado;
+---
+<section data-encarregado aria-labelledby="encarregado-titulo">
+  <h2 id="encarregado-titulo">Encarregado pelo tratamento de dados (DPO)</h2>
+  {e ? (
+    <p>{e.nome} — <a href={`mailto:${e.email}`}>{e.email}</a></p>
+  ) : (
+    <p>Encarregado em designação. O contato será publicado antes da versão definitiva desta página.</p>
+  )}
+</section>

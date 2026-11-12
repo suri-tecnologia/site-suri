@@ -1,0 +1,25 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import Politica from '../../../../components/Politica.astro';
+import AnexoCartorios from '../../../../components/AnexoCartorios.astro';
+import { APP } from '../../../../site.config';
+import { versoes } from '../../../../lib/politicas';
+import { escolherVigente } from '../../../../lib/versao';
+
+export function getStaticPaths() {
+  return [{ params: { app: APP.slug } }];
+}
+
+const lista = await versoes('app');
+const vigente = escolherVigente(lista, new Date());
+---
+<Base
+  titulo={`Política de privacidade do app ${APP.nome}`}
+  descricao={`Como o app ${APP.nome} trata dados pessoais: o que coleta, o que não coleta, por quanto tempo guarda e como exercer seus direitos.`}
+  indexar={vigente.data.revisao_juridica}
+>
+  <h1>Política de privacidade do app {APP.nome}</h1>
+  <Politica entrada={vigente} vigente={true} historico={lista} base={`/apps/${APP.slug}/privacidade/`}>
+    <AnexoCartorios />
+  </Politica>
+</Base>

@@ -1,0 +1,43 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import Encarregado from './Encarregado.astro';
+import { formatarData } from '../lib/versao';
+
+interface Props {
+  entrada: CollectionEntry<'politicas'>;
+  vigente: boolean;
+  historico: CollectionEntry<'politicas'>[];
+  base: string;
+}
+
+const { entrada, vigente, historico, base } = Astro.props;
+const { Content } = await render(entrada);
+const d = entrada.data;
+---
+<article class="politica">
+  {!d.revisao_juridica && (
+    <p class="aviso aviso-minuta" role="note">
+      <strong>Minuta em revisão jurídica.</strong> Este texto ainda não é a versão definitiva.
+    </p>
+  )}
+  {!vigente && (
+    <p class="aviso aviso-antiga" role="note">
+      Esta versão não está mais em vigor. <a href={base}>Ver a versão vigente</a>.
+    </p>
+  )}
+  <p class="meta-politica">Versão {d.versao} · vigente desde {formatarData(d.vigente_desde)}</p>
+  <Content />
+  <slot />
+  <Encarregado />
+  <section class="historico" aria-labelledby="historico-titulo">
+    <h2 id="historico-titulo">Histórico de versões</h2>
+    <ul>
+      {historico.map((h) => (
+        <li>
+          <a href={`${base}v${h.data.versao}/`}>Versão {h.data.versao}</a>
+          — vigente desde {formatarData(h.data.vigente_desde)}: {h.data.resumo_das_mudancas}
+        </li>
+      ))}
+    </ul>
+  </section>
+</article>

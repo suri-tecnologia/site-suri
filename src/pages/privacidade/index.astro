@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import Politica from '../../components/Politica.astro';
+import { versoes } from '../../lib/politicas';
+import { escolherVigente } from '../../lib/versao';
+
+const lista = await versoes('suri');
+const vigente = escolherVigente(lista, new Date());
+---
+<Base
+  titulo="Política de privacidade"
+  descricao="Como a SURI Tecnologia trata dados pessoais neste site e nos canais de contato."
+  indexar={vigente.data.revisao_juridica}
+>
+  <h1>Política de privacidade da SURI Tecnologia</h1>
+  <Politica entrada={vigente} vigente={true} historico={lista} base="/privacidade/" />
+</Base>
