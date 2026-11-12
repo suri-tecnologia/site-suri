@@ -1,0 +1,27 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Encarregado from '../../../components/Encarregado.astro';
+import { APP } from '../../../site.config';
+
+export function getStaticPaths() {
+  return [{ params: { app: APP.slug } }];
+}
+---
+<Base titulo={`Como excluir seus dados do app ${APP.nome}`} descricao={`Como apagar seus dados do app ${APP.nome}: no próprio app, automaticamente ou por pedido ao encarregado.`}>
+  <h1>Como excluir seus dados do app {APP.nome}</h1>
+  <h2>No próprio app (imediato)</h2>
+  <p>
+    Remova o pedido da sua lista. Na hora, o app apaga a chave e o validador do aparelho, e o servidor
+    apaga o vínculo entre o seu aparelho e aquele pedido. Desinstalar o app apaga tudo o que estava no aparelho.
+  </p>
+  <h2>Automaticamente</h2>
+  <p>O vínculo entre o aparelho e o pedido é apagado, no máximo, 90 dias depois da conclusão do pedido.</p>
+  <h2>Por pedido</h2>
+  <p>Se preferir, peça a exclusão ao nosso encarregado, informando o número do pedido.</p>
+  <Encarregado />
+  <h2>O que não é apagado</h2>
+  <ul>
+    <li>Os registros de acesso, guardados por 6 meses por exigência do Marco Civil da Internet.</li>
+    <li>Os dados do registro no cartório, que pertencem ao cartório e seguem as regras próprias da atividade registral.</li>
+  </ul>
+</Base>

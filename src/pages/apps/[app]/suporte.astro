@@ -1,0 +1,26 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Contato from '../../../components/Contato.astro';
+import { APP } from '../../../site.config';
+
+export function getStaticPaths() {
+  return [{ params: { app: APP.slug } }];
+}
+---
+<Base titulo={`Suporte do app ${APP.nome}`} descricao={`Ajuda e contato para quem usa o app ${APP.nome}.`}>
+  <h1>Suporte do app {APP.nome}</h1>
+  <h2>Fale com a SURI</h2>
+  <Contato />
+  <h2>Dúvidas frequentes</h2>
+  <h3>Onde encontro a chave de acesso e o validador?</h3>
+  <p>Na nota de entrega que o cartório emite quando recebe o seu pedido, junto com o QR Code.</p>
+  <h3>Perdi a nota de entrega. E agora?</h3>
+  <p>Peça uma segunda via ao cartório onde o pedido foi feito.</p>
+  <h3>O app não encontra o meu pedido.</h3>
+  <p>
+    Confira se a chave e o validador foram digitados exatamente como na nota. Depois de várias
+    tentativas erradas, a consulta fica bloqueada por alguns minutos, por segurança.
+  </p>
+  <h3>Tenho uma dúvida sobre o andamento do pedido em si.</h3>
+  <p>O app mostra o que o cartório registra. Dúvidas sobre exigências, prazos ou valores devem ser tratadas com o cartório.</p>
+</Base>

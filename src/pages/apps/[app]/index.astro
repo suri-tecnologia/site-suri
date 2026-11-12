@@ -1,0 +1,31 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { APP } from '../../../site.config';
+
+export function getStaticPaths() {
+  return [{ params: { app: APP.slug } }];
+}
+
+const base = `/apps/${APP.slug}/`;
+---
+<Base titulo={`App ${APP.nome}`} descricao={`Acompanhe seu pedido no cartório e receba um aviso a cada nova etapa com o app ${APP.nome}, sem cadastro.`}>
+  <h1>App {APP.nome}</h1>
+  <p>
+    Acompanhe a situação do seu pedido de registro ou de certidão e receba um aviso a cada nova etapa.
+    Sem cadastro: basta a chave de acesso e o validador da nota de entrega, ou o QR Code impresso nela.
+  </p>
+  <h2>Como funciona</h2>
+  <ol>
+    <li>No cartório, você recebe a nota de entrega do pedido.</li>
+    <li>No app, leia o QR Code da nota ou digite a chave de acesso e o validador.</li>
+    <li>Pronto: o app mostra a situação e o histórico, e avisa quando o pedido mudar de etapa.</li>
+  </ol>
+  <h2>Disponibilidade</h2>
+  <p>O app está em desenvolvimento e em breve estará na App Store e no Google Play.</p>
+  <h2>Privacidade e ajuda</h2>
+  <ul>
+    <li><a href={`${base}privacidade/`}>Política de privacidade do app</a></li>
+    <li><a href={`${base}suporte/`}>Suporte</a></li>
+    <li><a href={`${base}excluir-dados/`}>Como excluir seus dados</a></li>
+  </ul>
+</Base>
